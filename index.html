@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ur">
+<head>
+  <meta charset="UTF-8">
+  <title>Qistshop App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: radial-gradient(circle, #e0f7fa, #ffffff);
+      padding: 20px;
+      direction: rtl;
+    }
+    .container {
+      background: #fff;
+      max-width: 700px;
+      margin: auto;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+      color: #00695c;
+    }
+    label {
+      display: block;
+      margin: 10px 0 5px;
+      font-weight: bold;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      margin-bottom: 15px;
+      font-size: 15px;
+    }
+    .btn {
+      background: #00796b;
+      color: white;
+      border: none;
+      padding: 12px;
+      width: 100%;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    .output, .receipt, .tracker {
+      background: #f1f8e9;
+      padding: 15px;
+      border: 1px solid #c5e1a5;
+      border-radius: 5px;
+      margin-top: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+    th, td {
+      border: 1px solid #a5d6a7;
+      padding: 10px;
+      text-align: center;
+    }
+    th {
+      background-color: #c8e6c9;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h2>📋 قسط ریکارڈ فارم</h2>
+  <label>اکاؤنٹ نمبر:</label>
+  <input type="text" id="account" placeholder="Account number">
+
+  <label>کسٹمر کا نام:</label>
+  <input type="text" id="customer" placeholder="نام درج کریں">
+
+  <label>پروڈکٹ کا نام:</label>
+  <input type="text" id="product" placeholder="مثلاً: موبائل فون">
+
+  <label>روزانہ قسط:</label>
+  <input type="number" id="amount" placeholder="1500">
+
+  <label>باقی قیمت:</label>
+  <input type="number" id="balance" placeholder="20000">
+
+  <label>ریفر کرنے والا (اگر کوئی ہو):</label>
+  <input type="text" id="refName" placeholder="Zeeshan، Hina ...">
+
+  <button class="btn" onclick="addToTracker()">✅ قسط محفوظ کریں اور میسج بنائیں</button>
+
+  <div class="output" id="output" style="display:none;"></div>
+  <div class="receipt" id="receipt" style="display:none;"></div>
+  <div class="tracker" id="tracker">
+    <h3>💾 قسط ریکارڈ</h3>
+    <table id="trackerTable">
+      <thead>
+        <tr>
+          <th>کسٹمر</th>
+          <th>پروڈکٹ</th>
+          <th>قسط</th>
+          <th>باقی رقم</th>
+          <th>تاریخ</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const saved = localStorage.getItem('qistshopTracker');
+    if (saved) {
+      document.getElementById('trackerTable').getElementsByTagName('tbody')[0].innerHTML = saved;
+    }
+  });
+
+  function generateMsg(balance) {
+    const name = document.getElementById('customer').value;
+    const amount = document.getElementById('amount').value;
+    const product = document.getElementById('product').value;
+    const ref = document.getElementById('refName').value;
+
+    let message = `*Qistshop Reminder* \n\n`;
+    message += `Assalamualaikum ${name},\n`;
+    message += `Aapki aaj ki qist wasool ho gayi hai PKR ${amount}.\n`;
+    message += `Product: ${product}.\n`;
+    message += `Baqaya Amount: PKR ${balance}.\n`;
+    if (ref) {
+      message += `\n🎁 Aapko refer kiya gaya tha by: ${ref}.\n`;
+      message += `Apko humari taraf se bonus ya surprise milega!\n`;
+    }
+    message += `\nShukriya – Qistshop`;
+
+    return message;
+  }
+
+  function generateReceipt(balance) {
+    const name = document.getElementById('customer').value;
+    const amount = document.getElementById('amount').value;
+    const product = document.getElementById('product').value;
+    const ref = document.getElementById('refName').value;
+
+    let receipt = `------------------------------\n`;
+    receipt += `         QISTSHOP RECEIPT\n`;
+    receipt += `------------------------------\n`;
+    receipt += `Customer: ${name}\n`;
+    receipt += `Product : ${product}\n`;
+    receipt += `Installment: PKR ${amount}\n`;
+    receipt += `Remaining: PKR ${balance}\n`;
+    if (ref) receipt += `Referred By: ${ref}\n`;
+    receipt += `Date: ${new Date().toLocaleDateString()}\n`;
+    receipt += `------------------------------\n`;
+    receipt += `Shukriya – Qistshop\n`;
+
+    const receiptDiv = document.getElementById('receipt');
+    receiptDiv.style.display = 'block';
+    receiptDiv.innerText = receipt;
+  }
+
+  function addToTracker() {
+    const name = document.getElementById('customer').value;
+    const amount = parseFloat(document.getElementById('amount').value);
+    const product = document.getElementById('product').value;
+    const balanceInput = document.getElementById('balance');
+    let balance = parseFloat(balanceInput.value);
+    balance = balance - amount;
+    balanceInput.value = balance;
+
+    const table = document.getElementById('trackerTable').getElementsByTagName('tbody')[0];
+    const newRow = table.insertRow();
+    newRow.insertCell(0).innerText = name;
+    newRow.insertCell(1).innerText = product;
+    newRow.insertCell(2).innerText = `PKR ${amount}`;
+    newRow.insertCell(3).innerText = `PKR ${balance}`;
+    newRow.insertCell(4).innerText = new Date().toLocaleDateString();
+
+    localStorage.setItem('qistshopTracker', table.innerHTML);
+
+    generateReceipt(balance);
+
+    const message = generateMsg(balance);
+    const outputDiv = document.getElementById('output');
+    outputDiv.style.display = 'block';
+    outputDiv.innerHTML = `📤 WhatsApp / SMS Message:<br><br><textarea rows='7' style='width:100%;'>${message}</textarea><br><br>` +
+      `<a class='btn' style='display:inline-block;text-align:center;text-decoration:none;background:#25D366;' href='https://wa.me/?text=${encodeURIComponent(message)}' target='_blank'>📲 Send via WhatsApp</a><br><br>` +
+      `<a class='btn' style='display:inline-block;text-align:center;text-decoration:none;background:#0e76a8;' href='https://wa.me/923001234567?text=${encodeURIComponent(message)}' target='_blank'>📁 Send Copy to Admin</a><br><br>` +
+      `<a class='btn' style='display:inline-block;text-align:center;text-decoration:none;background:#34b7f1;' href='sms:?&body=${encodeURIComponent(message)}'>📩 Send as SMS</a>`;
+  }
+</script>
+</body>
+</html>
